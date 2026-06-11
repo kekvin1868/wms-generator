@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: oklch(0.99 0.005 80);
+  --color-foreground: oklch(0.18 0.02 60);
+  --color-muted: oklch(0.95 0.01 80);
+  --color-muted-foreground: oklch(0.45 0.02 60);
+  --color-border: oklch(0.9 0.01 80);
+  --color-card: oklch(1 0 0);
+  --color-primary: oklch(0.72 0.18 50);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-accent: oklch(0.95 0.05 50);
+  --color-destructive: oklch(0.6 0.22 25);
+  --radius: 0.75rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn 0.18s ease-out; }

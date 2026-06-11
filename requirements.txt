@@ -1,4 +1,4 @@
-# Travel Bag Co. — AI Image Studio (prototype)
+# Travel Bag Co. — AI Image Studio (prototype) backend
 # Note: 'transformers' IS required — diffusers uses it for the CLIP text encoders.
 torch
 diffusers>=0.31
@@ -6,6 +6,11 @@ transformers
 accelerate
 safetensors
 Pillow
-gradio>=4.44
 pyyaml
 omegaconf            # needed by diffusers from_single_file (SDXL-Lightning checkpoint)
+
+# API layer
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sse-starlette>=2.1
+pydantic>=2.7
