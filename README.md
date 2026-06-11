@@ -1,6 +1,6 @@
 # 🧳 AI Image Studio (Local Prototype)
 
-Make professional-looking travel bag photos on your own Mac.
+Make professional-looking travel bag photos on your own workspace.
 No cloud accounts. No subscriptions. Everything runs on your computer.
 
 You only need to do **Part A once**. After that, starting the app is two lines.
@@ -8,9 +8,9 @@ You only need to do **Part A once**. After that, starting the app is two lines.
 ---
 
 ## What you need
-
-- A Mac with Apple Silicon (M1–M5). You have an M5 — perfect.
-- About **10 GB of free disk space** (the AI model downloads once and is reused).
+- Preferably a MacOS, as this guide is entirely based off the Mac M5
+- At least 32GB of RAM memory
+- A decent modern CPU with enough 10-12 cores preferably.
 - An internet connection **for the first run only** (to download the model).
 
 ---
@@ -84,7 +84,7 @@ source venv/bin/activate
 python app.py
 ```
 
-Your web browser opens by itself with the **Travel Bag Co. — AI Image Studio**
+Your web browser opens by itself with the **AI Image Studio**
 screen. (If it doesn't, copy the address shown in Terminal —
 usually `http://127.0.0.1:7860` — into your browser.)
 
@@ -137,17 +137,6 @@ You can also just close the Terminal window.
 | Out-of-memory error | Open **More options** → switch Model to **"Small & light — SD 1.5"**. |
 
 ---
-
-## What's in this folder
-
-```
-travel-bag-genai/
-├── app.py                  ← the app (don't need to touch it)
-├── requirements.txt        ← list of components pip installs
-├── config/campaigns/       ← campaign presets (plain text, editable)
-├── outputs/                ← your generated images land here
-└── README.md               ← this file
-```
 
 ### Editing campaign presets (optional)
 
