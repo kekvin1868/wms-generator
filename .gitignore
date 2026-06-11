@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg-link
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy / ruff / pyright
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# Gradio
+gradio_cached_examples/
+flagged/
+
+# Hugging Face / diffusers model cache
+# (large binary checkpoints — don't commit)
+*.safetensors
+*.ckpt
+*.bin
+*.pt
+*.pth
+models/
+model_cache/
+.cache/
+
+# Generated outputs (keep dir via .gitkeep)
+outputs/*
+!outputs/.gitkeep
+
+# Secrets / env
+.env
+.env.*
+*.env
+secrets.yaml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+
+# Logs
+*.log
+logs/
