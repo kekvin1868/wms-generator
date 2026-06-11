@@ -1,6 +1,6 @@
-# 🧳 Travel Bag Co. — AI Image Studio (Local Prototype)
+# 🧳 AI Image Studio (Local Prototype)
 
-Make professional-looking travel bag photos on your own Mac.
+Make professional-looking travel bag photos on your own workspace.
 No cloud accounts. No subscriptions. Everything runs on your computer.
 
 The app is now split in two pieces that talk to each other on your laptop:
@@ -13,14 +13,10 @@ You only need to do **Part A once**. After that, starting the app is one command
 ---
 
 ## What you need
-
-- A Mac with Apple Silicon (M1–M5). You have an M5 — perfect.
-- About **10 GB of free disk space** (the AI model downloads once and is reused).
-- **Python 3.10+**.
-- **Node.js 20+** (Node 22 or 24 also fine). Check with `node --version`.
-  If missing: install from <https://nodejs.org> or run `brew install node`.
-- **pnpm** (recommended) or npm. Install pnpm once with `npm install -g pnpm`.
-- An internet connection **for the first run only** (to download the model and frontend deps).
+- Preferably a MacOS, as this guide is entirely based off the Mac M5
+- At least 32GB of RAM memory
+- A decent modern CPU with enough 10-12 cores preferably.
+- An internet connection **for the first run only** (to download the model).
 
 ---
 
