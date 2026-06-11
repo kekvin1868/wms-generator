@@ -1,4 +1,4 @@
-# 🧳 Travel Bag Co. — AI Image Studio (Local Prototype)
+# 🧳 AI Image Studio (Local Prototype)
 
 Make professional-looking travel bag photos on your own Mac.
 No cloud accounts. No subscriptions. Everything runs on your computer.
