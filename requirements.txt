@@ -1,8 +1,8 @@
 # Travel Bag Co. — AI Image Studio (prototype) backend
 # Note: 'transformers' IS required — diffusers uses it for the CLIP text encoders.
 torch
-diffusers>=0.31
-transformers
+diffusers>=0.31,<0.40
+transformers>=4.40,<5
 accelerate
 safetensors
 Pillow

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import os
 import re
 import uuid
 from typing import AsyncIterator
@@ -77,12 +78,16 @@ def _load_pipeline(model_key: str):
     if model_key in _PIPES:
         return _PIPES[model_key]
 
+    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+
     if model_key == "lightning":
         from diffusers import StableDiffusionXLPipeline, EulerDiscreteScheduler
         from huggingface_hub import hf_hub_download
 
         ckpt = hf_hub_download(
-            "ByteDance/SDXL-Lightning", "sdxl_lightning_4step.safetensors"
+            "ByteDance/SDXL-Lightning",
+            "sdxl_lightning_4step.safetensors",
+            token=hf_token,
         )
         pipe = StableDiffusionXLPipeline.from_single_file(ckpt, torch_dtype=DTYPE)
         pipe.scheduler = EulerDiscreteScheduler.from_config(
@@ -96,6 +101,7 @@ def _load_pipeline(model_key: str):
             torch_dtype=DTYPE,
             safety_checker=None,
             requires_safety_checker=False,
+            token=hf_token,
         )
 
     pipe = pipe.to(DEVICE)

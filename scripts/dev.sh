@@ -15,6 +15,21 @@ elif [[ -d venv ]]; then
   source venv/bin/activate
 fi
 
+# Load secrets from .env (root preferred, backend/ fallback)
+ENV_FILE=""
+if [[ -f .env ]]; then
+  ENV_FILE=".env"
+elif [[ -f backend/.env ]]; then
+  ENV_FILE="backend/.env"
+fi
+if [[ -n "$ENV_FILE" ]]; then
+  echo "Loading env from $ENV_FILE"
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload &
 BACKEND_PID=$!
 
