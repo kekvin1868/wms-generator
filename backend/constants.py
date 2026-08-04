@@ -4,9 +4,14 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
+REFS_DIR = OUTPUT_DIR / "refs"
 CAMPAIGN_DIR = PROJECT_ROOT / "config" / "campaigns"
 
 OUTPUT_DIR.mkdir(exist_ok=True)
+REFS_DIR.mkdir(exist_ok=True)
+
+MAX_REFERENCE_IMAGE_BYTES = 10 * 1024 * 1024
+ALLOWED_REFERENCE_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 
 MODELS = {
     "Fast & good — SDXL-Lightning (~7 GB download, recommended)": "lightning",

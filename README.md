@@ -25,20 +25,26 @@ You only need to do **Part A once**. After that, starting the app is one command
 ### Step 1. Open Terminal and go to the project folder
 
 ```
-cd ~/Documents/GitHub/wms-generator
+cd ~/Documents/GitHub/wms/wms-generator
 ```
 
 (Adjust the path if you put the folder somewhere else. Tip: drag the folder onto the Terminal window after typing `cd ` — the path fills in automatically.)
 
 ### Step 2. Set up the Python backend
 
+Python is managed by [pyenv](https://github.com/pyenv/pyenv) (installs the interpreter) + [uv](https://github.com/astral-sh/uv) (creates the venv, installs packages) — not Homebrew's `python@3.12`/`python@3.14`. This keeps the project's Python version pinned and isolated from whatever your system/Homebrew Python is.
+
 ```
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+brew install pyenv uv        # one-time, if you don't have them
+pyenv install -s $(cat .python-version)
+uv venv --python $(cat .python-version) .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
 ```
 
-This downloads about 3 GB of software (torch, diffusers, fastapi, …). 5–10 minutes is normal. When the cursor returns with no red errors, you're done.
+This downloads about 3 GB of software (torch, diffusers, fastapi, …). 5–10 minutes is normal (uv is much faster than plain `pip`). When the cursor returns with no red errors, you're done.
+
+> `./scripts/dev.sh` (Part B below) does all of this automatically the first time you run it — Steps 1–2 above are only needed if you want to do it by hand or your `uv`/`pyenv` aren't already set up.
 
 ### Step 3. Set up the Next.js frontend
 
@@ -66,7 +72,7 @@ From the project root:
 
 This script:
 
-1. Activates your Python `venv`.
+1. Creates `.venv` via pyenv + uv if it doesn't exist yet (first run only), then activates it.
 2. Starts the backend on **<http://127.0.0.1:8000>** (FastAPI + SSE).
 3. Starts the frontend on **<http://localhost:3000>** (Next.js dev server).
 
@@ -75,7 +81,7 @@ Open <http://localhost:3000> in your browser. You'll see the **Travel Bag Co. �
 > Prefer two terminals? Equivalent manual steps:
 > ```
 > # terminal 1
-> source venv/bin/activate
+> source .venv/bin/activate
 > uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 >
 > # terminal 2
@@ -127,7 +133,7 @@ Press `Ctrl + C` in the terminal that's running `./scripts/dev.sh`. Both servers
 | `command not found: python3` | Install Python from <https://www.python.org/downloads/>. |
 | `command not found: node` | Install Node 20+ from <https://nodejs.org> or `brew install node`. |
 | `command not found: pnpm` | `npm install -g pnpm`, or just use `npm install` / `npm run dev`. |
-| `command not found: pip` | Run `source venv/bin/activate` first. |
+| `command not found: pip` / `uv` | Run `source .venv/bin/activate` first, or `brew install uv` if `uv` itself is missing. |
 | Red errors during `pip install` | Run it again — downloads sometimes hiccup. |
 | Frontend loads but says "Backend not reachable" | Open <http://127.0.0.1:8000/api/options> in a tab. If it doesn't return JSON, the backend isn't running — check the terminal for the `uvicorn` log. |
 | Browser shows "can't connect" on port 3000 | Make sure `pnpm dev` is running; check the terminal output. |
