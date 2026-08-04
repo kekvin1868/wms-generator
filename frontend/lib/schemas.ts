@@ -12,6 +12,8 @@ export const GenerateRequestSchema = z.object({
   aspect: z.string().min(1),
   count: z.coerce.number().int().min(1).max(4).default(2),
   seed_text: z.string().default(""),
+  reference_image: z.string().nullable().default(null),
+  strength: z.coerce.number().min(0.05).max(0.95).default(0.6),
 });
 
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
@@ -48,5 +50,6 @@ export interface HistoryItem {
   prompt: string | null;
   seed: number | null;
   model: string | null;
+  reference_url: string | null;
   created_at: number;
 }

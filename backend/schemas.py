@@ -17,6 +17,8 @@ class GenerateRequest(BaseModel):
     aspect: str
     count: int = Field(default=2, ge=1, le=4)
     seed_text: str = ""
+    reference_image: str | None = None
+    strength: float = Field(default=0.6, ge=0.05, le=0.95)
 
 
 class GeneratedImage(BaseModel):
@@ -51,4 +53,5 @@ class HistoryItem(BaseModel):
     prompt: str | None = None
     seed: int | None = None
     model: str | None = None
+    reference_url: str | None = None
     created_at: float

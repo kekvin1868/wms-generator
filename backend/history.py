@@ -23,6 +23,7 @@ def list_history(limit: int = 200) -> list[HistoryItem]:
             seed_val = int(seed_raw) if seed_raw is not None else None
         except ValueError:
             seed_val = None
+        ref_name = info.get("reference_image")
         out.append(
             HistoryItem(
                 filename=f.name,
@@ -30,6 +31,7 @@ def list_history(limit: int = 200) -> list[HistoryItem]:
                 prompt=info.get("prompt"),
                 seed=seed_val,
                 model=info.get("model"),
+                reference_url=f"/outputs/refs/{ref_name}" if ref_name else None,
                 created_at=f.stat().st_mtime,
             )
         )

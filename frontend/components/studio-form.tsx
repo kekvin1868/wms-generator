@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, X } from "lucide-react";
 import { GenerateRequestSchema, type GenerateRequest, type Options, type Preset } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +31,13 @@ interface Props {
 }
 
 const FROM_SCRATCH = "— Start from scratch —";
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export function StudioForm({ options, presets, onSubmit, busy }: Props) {
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const form = useForm<GenerateRequest>({
     resolver: zodResolver(GenerateRequestSchema),
     defaultValues: {
@@ -47,8 +52,41 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
       aspect: options.aspects[0],
       count: 2,
       seed_text: "",
+      reference_image: null,
+      strength: 0.6,
     },
   });
+
+  const referenceImage = form.watch("reference_image");
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageError("Please upload a PNG, JPEG, or WebP image.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageError("Image is too large — 10 MB max.");
+      e.target.value = "";
+      return;
+    }
+
+    setImageError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      form.setValue("reference_image", reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    form.setValue("reference_image", null);
+    setImageError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   function applyPreset(name: string) {
     const p = presets.find((pp) => pp.name === name);
@@ -81,7 +119,36 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         </Select>
       </Field>
 
-      <ControllerField name="bag_type" control={form.control} label="2. What kind of bag?">
+      <Field label="2. Reference image (optional — guide the result with your own photo)">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ALLOWED_IMAGE_TYPES.join(",")}
+          onChange={handleImageSelect}
+          className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[var(--color-primary)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[var(--color-primary-foreground)]"
+        />
+        {imageError && <p className="text-sm text-[var(--color-destructive)]">{imageError}</p>}
+        {referenceImage && (
+          <div className="relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={referenceImage}
+              alt="Reference"
+              className="h-24 w-24 rounded-md border object-cover"
+            />
+            <button
+              type="button"
+              onClick={clearImage}
+              className="absolute -right-2 -top-2 rounded-full border bg-[var(--color-card)] p-1"
+              aria-label="Remove reference image"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+      </Field>
+
+      <ControllerField name="bag_type" control={form.control} label="3. What kind of bag?">
         {(field) => (
           <Select value={field.value} onValueChange={field.onChange}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -92,14 +159,14 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         )}
       </ControllerField>
 
-      <Field label="3. Bag color (plain words are fine)">
+      <Field label="4. Bag color (plain words are fine)">
         <Input
           placeholder="e.g. midnight navy, sand beige"
           {...form.register("color")}
         />
       </Field>
 
-      <ControllerField name="location" control={form.control} label="4. Where is the photo taken?">
+      <ControllerField name="location" control={form.control} label="5. Where is the photo taken?">
         {(field) => (
           <Select value={field.value} onValueChange={field.onChange}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -110,7 +177,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         )}
       </ControllerField>
 
-      <ControllerField name="lighting" control={form.control} label="5. Lighting">
+      <ControllerField name="lighting" control={form.control} label="6. Lighting">
         {(field) => (
           <Select value={field.value} onValueChange={field.onChange}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -121,7 +188,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         )}
       </ControllerField>
 
-      <ControllerField name="style" control={form.control} label="6. Photo style">
+      <ControllerField name="style" control={form.control} label="7. Photo style">
         {(field) => (
           <Select value={field.value} onValueChange={field.onChange}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -132,7 +199,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         )}
       </ControllerField>
 
-      <ControllerField name="people" control={form.control} label="7. People in the shot?">
+      <ControllerField name="people" control={form.control} label="8. People in the shot?">
         {(field) => (
           <Select value={field.value} onValueChange={field.onChange}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -184,6 +251,30 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
             <Field label="Seed (leave blank for new ideas; enter a number to repeat a result)">
               <Input placeholder="e.g. 42" {...form.register("seed_text")} />
             </Field>
+
+            {referenceImage && (
+              <ControllerField
+                name="strength"
+                control={form.control}
+                label="Reference strength (lower = closer to your photo, higher = follows the prompt more)"
+              >
+                {(field) => (
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      min={0.05}
+                      max={0.95}
+                      step={0.05}
+                      value={[Number(field.value) || 0.6]}
+                      onValueChange={(v) => field.onChange(v[0])}
+                      className="flex-1"
+                    />
+                    <span className="w-10 text-center text-sm font-semibold">
+                      {(Number(field.value) || 0.6).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </ControllerField>
+            )}
 
             <ControllerField name="model_label" control={form.control} label="Model">
               {(field) => (

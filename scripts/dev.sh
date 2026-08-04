@@ -7,6 +7,20 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 # --- backend ---
+# Python is managed by pyenv + uv (see .python-version), not Homebrew's
+# python@3.12/3.14. This only affects this script's PATH, not your shell.
+if [[ -d "$HOME/.pyenv" ]]; then
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)"
+fi
+
+if [[ ! -d .venv ]] && command -v uv >/dev/null 2>&1; then
+  echo "No .venv found — creating one with uv ($(cat .python-version 2>/dev/null || echo 'default') )…"
+  uv venv --python "$(cat .python-version)" .venv
+  uv pip install -r requirements.txt --python .venv/bin/python
+fi
+
 if [[ -d .venv ]]; then
   # shellcheck disable=SC1091
   source .venv/bin/activate
