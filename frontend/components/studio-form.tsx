@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Sparkles, Loader2, X } from "lucide-react";
+import { Sparkles, Loader2, X, Clapperboard } from "lucide-react";
 import { GenerateRequestSchema, type GenerateRequest, type Options, type Preset } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,13 +28,16 @@ interface Props {
   presets: Preset[];
   onSubmit: (req: GenerateRequest) => void;
   busy: boolean;
+  mode: "photo" | "video";
+  /** Shown above the submit button (e.g. video quota). */
+  footer?: React.ReactNode;
 }
 
 const FROM_SCRATCH = "— Start from scratch —";
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
-export function StudioForm({ options, presets, onSubmit, busy }: Props) {
+export function StudioForm({ options, presets, onSubmit, busy, mode, footer }: Props) {
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +57,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
       seed_text: "",
       reference_image: null,
       strength: 0.6,
+      motion: options.motions[0],
     },
   });
 
@@ -99,10 +103,6 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
     if (p.people) form.setValue("people", p.people);
   }
 
-  useEffect(() => {
-    if (busy) return;
-  }, [busy]);
-
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
@@ -119,6 +119,18 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         </Select>
       </Field>
 
+      {mode === "video" ? (
+        <ControllerField name="motion" control={form.control} label="2. Camera motion">
+          {(field) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {options.motions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+        </ControllerField>
+      ) : (
       <Field label="2. Reference image (optional — guide the result with your own photo)">
         <input
           ref={fileInputRef}
@@ -147,6 +159,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
           </div>
         )}
       </Field>
+      )}
 
       <ControllerField name="bag_type" control={form.control} label="3. What kind of bag?">
         {(field) => (
@@ -210,6 +223,7 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
         )}
       </ControllerField>
 
+      {mode === "photo" && (
       <Accordion type="single" collapsible>
         <AccordionItem value="more">
           <AccordionTrigger>More options (you can ignore these)</AccordionTrigger>
@@ -289,6 +303,9 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      )}
+
+      {footer}
 
       <Button type="submit" size="lg" disabled={busy} className="w-full">
         {busy ? (
@@ -297,7 +314,11 @@ export function StudioForm({ options, presets, onSubmit, busy }: Props) {
           </>
         ) : (
           <>
-            <Sparkles className="h-5 w-5" /> Create my images
+            {mode === "video" ? (
+              <><Clapperboard className="h-5 w-5" /> Create my video (10 s · 1080p)</>
+            ) : (
+              <><Sparkles className="h-5 w-5" /> Create my images</>
+            )}
           </>
         )}
       </Button>

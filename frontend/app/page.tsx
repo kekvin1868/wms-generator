@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Luggage } from "lucide-react";
 import { api } from "@/lib/api";
 import { StudioForm } from "@/components/studio-form";
@@ -8,13 +9,34 @@ import { Gallery } from "@/components/gallery";
 import { ProgressBar } from "@/components/progress-bar";
 import { HistoryDrawer } from "@/components/history-drawer";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
+import { useVideoJob } from "@/hooks/use-video-job";
+import { VideoPanel, VideoQuotaNote } from "@/components/video-panel";
+import type { GenerateRequest } from "@/lib/schemas";
 
 export default function HomePage() {
   const optionsQ = useQuery({ queryKey: ["options"], queryFn: api.options });
   const presetsQ = useQuery({ queryKey: ["presets"], queryFn: api.presets });
   const { state, start } = useGenerationStream();
+  const [mode, setMode] = useState<"photo" | "video">("photo");
+  const queryClient = useQueryClient();
+  const quotaQ = useQuery({
+    queryKey: ["video-quota"],
+    queryFn: api.videoQuota,
+    enabled: mode === "video",
+    retry: false,
+  });
+  const video = useVideoJob(() => {
+    queryClient.invalidateQueries({ queryKey: ["video-quota"] });
+    queryClient.invalidateQueries({ queryKey: ["history"] });
+  });
 
-  const busy = state.phase === "running";
+  function handleSubmit(req: GenerateRequest) {
+    if (mode === "photo") return start(req);
+    const { bag_type, color, location, lighting, style, people, motion } = req;
+    video.start({ bag_type, color, location, lighting, style, people, motion });
+  }
+
+  const busy = mode === "photo" ? state.phase === "running" : video.state.phase === "running";
   const images = state.phase === "done" ? state.result.images : [];
   const prompt = state.phase === "done" ? state.result.prompt : undefined;
   const seedUsed = state.phase === "done" ? state.result.seed_used : null;
@@ -46,21 +68,46 @@ export default function HomePage() {
           <div>
             <h1 className="text-2xl font-bold leading-tight">Travel Bag Co. — AI Image Studio</h1>
             <p className="text-sm text-[var(--color-muted-foreground)]">
-              Pick options, press the button. Images saved to <code>outputs/</code>.
+              Pick options, press the button. Results saved to <code>outputs/</code>.
             </p>
           </div>
         </div>
-        <HistoryDrawer />
+        <div className="flex items-center gap-3">
+          <div className="inline-flex rounded-lg border p-1" role="tablist" aria-label="Output type">
+            {(["photo", "video"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={mode === m}
+                onClick={() => setMode(m)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize ${
+                  mode === m
+                    ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                    : "text-[var(--color-muted-foreground)]"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <HistoryDrawer />
+        </div>
       </header>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <StudioForm
           options={optionsQ.data}
           presets={presetsQ.data}
-          onSubmit={start}
+          onSubmit={handleSubmit}
           busy={busy}
+          mode={mode}
+          footer={mode === "video" ? <VideoQuotaNote query={quotaQ} /> : undefined}
         />
 
+        {mode === "video" ? (
+          <VideoPanel state={video.state} />
+        ) : (
         <div className="space-y-4">
           {state.phase === "running" && <ProgressBar progress={state.progress} />}
           {state.phase === "error" && (
@@ -78,6 +125,7 @@ export default function HomePage() {
             </div>
           )}
         </div>
+        )}
       </div>
     </main>
   );

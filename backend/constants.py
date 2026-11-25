@@ -68,6 +68,14 @@ PEOPLE = {
     "Person carrying it (side view)": "a traveler carrying the bag, side profile",
 }
 
+CAMERA_MOTIONS = {
+    "Slow orbit around the bag": "camera slowly orbits around the bag",
+    "Slow push-in": "camera slowly pushes in toward the bag",
+    "Side pan": "camera pans smoothly from left to right",
+    "Handheld walk-along": "handheld camera walking alongside the traveler",
+    "Static, subtle motion": "static camera, subtle natural motion in the scene",
+}
+
 DEFAULT_NEGATIVE = (
     "watermark, text, caption, logo glitch, blurry, low quality, "
     "distorted, deformed, extra straps, extra limbs, bad anatomy, "

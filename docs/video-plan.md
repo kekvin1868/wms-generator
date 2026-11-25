@@ -2,7 +2,7 @@
 
 Add **text → video** to the AI Image Studio. Photos stay free and local; videos are made by a paid cloud model (Wan on fal.ai), paid from one prepaid fal account, with a per-user monthly limit so the bill can't run away.
 
-Status: **planned, not started** · Decided: 2026-11-25
+Status: **code built, not deployed** (Phases 1–4 done against fakes; Phase 0 + 5 need accounts) · Decided: 2026-11-25
 
 ---
 
@@ -131,7 +131,7 @@ Refund = `update video_jobs set status = 'failed'` → it stops counting automat
 
 ---
 
-## 4. Video server (new: `video-server/`)
+## 4. Video server (`video_server/`)
 
 Small FastAPI app, separate from the local backend. No model, no GPU.
 
@@ -157,7 +157,12 @@ Other rules:
 - A user can only read their own jobs (`/jobs/{id}` checks `key_id`).
 - If fal is unreachable when submitting → mark job `failed` (refund) and return `502`.
 - A `reserved` job older than ~1 hour that fal reports as gone → mark `failed`.
-- Use the `fal-client` Python package (`submit` / `status` / `result`).
+- Talks to fal's queue REST API and Supabase's REST API with plain `httpx` (no extra SDKs).
+
+**Deploy (free host, e.g. Render / Koyeb):** deploy the whole repo (the server imports `backend/constants.py` + `backend/prompts.py`, no torch).
+- Build: `pip install -r video_server/requirements.txt`
+- Start: `uvicorn video_server.main:app --host 0.0.0.0 --port $PORT`
+- Secrets: `FAL_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, optional `FAL_MODEL`.
 
 ---
 
@@ -190,10 +195,10 @@ Each phase ends with something you can check.
   - Confirm the exact Wan endpoint on fal supports **10 s and 1080p** text → video (older Wan versions top out at 5 s / 720p).
   - Run 3 sample bag prompts by hand in fal's playground. If quality is poor, test Kling with the same prompts before locking the model.
   - *Done when:* model id, price per clip, and min top-up are written into this file.
-- [ ] **Phase 1 — Supabase**: create project, run §3 SQL, add one test key. *Done when:* calling `reserve_clip` 31 times with quota 30 fails on the 31st.
-- [ ] **Phase 2 — Video server**: endpoints from §4, run locally against fal + Supabase. *Done when:* `curl` can create a job, poll it, and get a working video URL; a bad key gets `401`; an exhausted key gets `429`; a forced fal failure refunds the slot.
-- [ ] **Phase 3 — Local backend**: `/api/video*` routes, download to `outputs/`, history listing. *Done when:* a clip requested from the local backend lands in `outputs/` with its sidecar.
-- [ ] **Phase 4 — Frontend**: toggle, motion dropdown, quota badge, video in gallery/history. *Done when:* full click-through on one Mac.
+- [x] **Phase 1 — Supabase** (`video_server/schema.sql`, tested on local Postgres; still to run on Supabase): create project, run §3 SQL, add one test key. *Done when:* calling `reserve_clip` 31 times with quota 30 fails on the 31st.
+- [x] **Phase 2 — Video server** (tested with fake fal + Supabase: `python -m video_server.test_main`): endpoints from §4, run locally against fal + Supabase. *Done when:* `curl` can create a job, poll it, and get a working video URL; a bad key gets `401`; an exhausted key gets `429`; a forced fal failure refunds the slot.
+- [x] **Phase 3 — Local backend**: `/api/video*` routes, download to `outputs/`, history listing. *Done when:* a clip requested from the local backend lands in `outputs/` with its sidecar.
+- [x] **Phase 4 — Frontend** (build passes; end-to-end checked over HTTP with a fake server, not yet clicked through in a browser): toggle, motion dropdown, quota badge, video in gallery/history. *Done when:* full click-through on one Mac.
 - [ ] **Phase 5 — Deploy + invite**: deploy video server to free host (secrets in host settings), set `VIDEO_SERVER_URL`, create invite keys, small first fal top-up. *Done when:* a second person makes a clip from their own Mac.
 
 **Tests to leave behind** (small, like `backend/test_pipeline.py`): quota reserve/refund logic, prompt building with motion, server refusing unknown option values.
