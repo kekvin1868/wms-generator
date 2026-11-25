@@ -32,8 +32,12 @@ export function HistoryDrawer() {
         <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: "calc(100vh - 130px)" }}>
           {(data ?? []).map((h) => (
             <div key={h.filename} className="flex gap-3 rounded-lg border p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={h.url} alt={h.filename} className="h-20 w-20 rounded object-cover" />
+              {h.kind === "video" ? (
+                <video src={h.url} muted preload="metadata" className="h-20 w-20 rounded bg-black object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={h.url} alt={h.filename} className="h-20 w-20 rounded object-cover" />
+              )}
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="truncate text-xs font-medium">{h.filename}</div>
                 {h.seed != null && (
@@ -55,7 +59,7 @@ export function HistoryDrawer() {
             </div>
           ))}
           {data && data.length === 0 && (
-            <p className="text-sm text-[var(--color-muted-foreground)]">No images yet.</p>
+            <p className="text-sm text-[var(--color-muted-foreground)]">Nothing yet.</p>
           )}
         </div>
       </SheetContent>

@@ -54,4 +54,5 @@ class HistoryItem(BaseModel):
     seed: int | None = None
     model: str | None = None
     reference_url: str | None = None
+    kind: Literal["image", "video"] = "image"
     created_at: float

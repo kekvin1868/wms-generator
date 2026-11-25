@@ -120,7 +120,22 @@ Click **History** in the top-right. A side panel slides in showing every PNG in 
 
 After each run, the status line shows the **Seed** used. Open **More options** in the form, paste the same seed, keep the rest of the options the same, and re-run — you'll get the identical images back.
 
-### Step 6. Stop the app
+### Step 6. Make a video (optional, needs an invite key)
+
+Videos are made in the cloud, not on your Mac, and each person gets **30 clips a month** (10 seconds, 1080p).
+
+1. Ask the project owner for your **invite key** and the **video server address**.
+2. Open `backend/.env` (same file as `HF_TOKEN`) and add two lines:
+   ```
+   VIDEO_SERVER_URL=https://<address you were given>
+   VIDEO_INVITE_KEY=<your invite key>
+   ```
+3. Restart the app (`Ctrl + C`, then `./scripts/dev.sh`).
+4. Click **Video** in the top-right, pick the options + a **camera motion**, press **Create my video**. It takes about 1–3 minutes. The clip is saved to `outputs/` and shows up in **History**.
+
+Keep your invite key private: anyone who has it can use up your 30 clips.
+
+### Step 7. Stop the app
 
 Press `Ctrl + C` in the terminal that's running `./scripts/dev.sh`. Both servers shut down together. (Or just close the terminal.)
 
@@ -141,6 +156,9 @@ Press `Ctrl + C` in the terminal that's running `./scripts/dev.sh`. Both servers
 | First image takes forever | Normal — the 7 GB model is downloading. Watch the backend terminal for progress. |
 | Mac feels slow / fan spins | Normal while generating. It stops when images are done. |
 | Out-of-memory error | Open **More options** → switch Model to **"Small & light — SD 1.5"**. |
+| "Video not set up" | Add `VIDEO_SERVER_URL` and `VIDEO_INVITE_KEY` to `backend/.env`, then restart (see Part B, Step 6). |
+| "Video server unreachable" | The free server sleeps when nobody uses it. Wait ~1 minute and try again. |
+| "Monthly video quota used up" | You've used your 30 clips this month. Ask the owner to raise your limit, or wait until the 1st. |
 
 ---
 
@@ -154,7 +172,13 @@ wms-generator/
 │   ├── presets.py           ← YAML preset loader
 │   ├── history.py           ← reads outputs/ + PNG metadata
 │   ├── constants.py         ← dropdown sources, prompt fragments
+│   ├── prompts.py           ← prompt builders (shared with video_server)
+│   ├── video.py             ← /api/video routes: talks to the video server, saves clips
 │   └── schemas.py           ← Pydantic request/response models
+├── video_server/            ← shared cloud server for video (holds the fal.ai key)
+│   ├── main.py              ← invite-key check, quota, fal queue
+│   ├── schema.sql           ← Supabase tables + quota functions
+│   └── test_main.py         ← self-check: python -m video_server.test_main
 ├── frontend/                ← Next.js 15 + React 19 + Tailwind v4
 │   ├── app/                 ← layout, page, providers (TanStack Query)
 │   ├── components/          ← StudioForm, Gallery, ProgressBar, HistoryDrawer + ui/ primitives
@@ -162,7 +186,8 @@ wms-generator/
 │   ├── lib/                 ← api, schemas (Zod), utils
 │   └── package.json
 ├── config/campaigns/        ← campaign presets (plain YAML, editable)
-├── outputs/                 ← generated PNGs land here
+├── docs/video-plan.md       ← how video works and why
+├── outputs/                 ← generated PNGs and MP4s land here
 ├── scripts/dev.sh           ← runs backend + frontend together
 ├── requirements.txt         ← Python deps
 └── README.md                ← this file
@@ -184,8 +209,11 @@ The frontend talks to FastAPI via these endpoints on `http://127.0.0.1:8000`:
 | GET | `/api/presets` | Parsed `config/campaigns/*.yaml` |
 | POST | `/api/generate` | Submit a job — returns `{ job_id }` |
 | GET | `/api/generate/{job_id}/stream` | **Server-Sent Events**: `progress` updates then a final `done` |
-| GET | `/api/history` | Files in `outputs/` with PNG metadata |
-| GET | `/outputs/{filename}` | Static PNG serving |
+| GET | `/api/history` | Files in `outputs/` (PNG metadata, MP4 `.json` sidecar) |
+| GET | `/api/video/quota` | Clips used / left this month |
+| POST | `/api/video` | Submit a video job — returns `{ job_id, prompt }` |
+| GET | `/api/video/{job_id}` | Job status; when `done`, the clip is downloaded to `outputs/` |
+| GET | `/outputs/{filename}` | Static PNG / MP4 serving |
 | GET | `/api/health` | Reports device (`mps`/`cuda`/`cpu`) |
 
 OpenAPI docs live at <http://127.0.0.1:8000/docs> while the backend is running.

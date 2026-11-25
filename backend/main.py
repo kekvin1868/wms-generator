@@ -8,9 +8,11 @@ from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 
 from . import pipeline
+from . import video
 from .constants import (
     ASPECTS,
     BAG_TYPES,
+    CAMERA_MOTIONS,
     LIGHTING,
     LOCATIONS,
     MODELS,
@@ -31,6 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(video.router)
 app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
 
 
@@ -44,6 +47,7 @@ def get_options():
         "lighting": list(LIGHTING.keys()),
         "styles": list(STYLES.keys()),
         "people": list(PEOPLE.keys()),
+        "motions": list(CAMERA_MOTIONS.keys()),
     }
 
 

@@ -19,15 +19,12 @@ from .constants import (
     ALLOWED_REFERENCE_IMAGE_FORMATS,
     ASPECTS,
     DEFAULT_NEGATIVE,
-    LIGHTING,
-    LOCATIONS,
     MAX_REFERENCE_IMAGE_BYTES,
     MODELS,
     OUTPUT_DIR,
-    PEOPLE,
     REFS_DIR,
-    STYLES,
 )
+from .prompts import build_prompt
 from .schemas import DoneEvent, ErrorEvent, GeneratedImage, GenerateRequest, ProgressEvent
 
 # ---------- device ----------
@@ -83,29 +80,6 @@ def decode_reference_image(data: str) -> Image.Image:
 def fit_reference_image(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     """Center-crop + resize the reference image to match the target aspect."""
     return ImageOps.fit(img, size, method=Image.LANCZOS, centering=(0.5, 0.5))
-
-
-def build_prompt(
-    bag_type: str,
-    color: str,
-    location: str,
-    lighting: str,
-    style: str,
-    people: str,
-    extra: str,
-) -> str:
-    color_txt = f"{color.strip()} " if color.strip() else ""
-    parts = [
-        f"a {color_txt}{bag_type.lower()} for travel",
-        LOCATIONS[location],
-        LIGHTING[lighting],
-        STYLES[style],
-        PEOPLE[people],
-        "highly detailed, 8k, photorealistic",
-    ]
-    if extra.strip():
-        parts.insert(1, extra.strip())
-    return ", ".join(parts)
 
 
 # Lightning ships 1/2/4/8-step distilled checkpoints. img2img needs more headroom

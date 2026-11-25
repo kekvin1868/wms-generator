@@ -1,6 +1,8 @@
-"""List previously generated PNGs and read their embedded metadata."""
+"""List previously generated PNGs (embedded metadata) and MP4s (.json sidecar)."""
 
 from __future__ import annotations
+
+import json
 
 from PIL import Image
 
@@ -9,9 +11,13 @@ from .schemas import HistoryItem
 
 
 def list_history(limit: int = 200) -> list[HistoryItem]:
-    files = sorted(OUTPUT_DIR.glob("*.png"), key=lambda p: p.stat().st_mtime, reverse=True)
+    files = [*OUTPUT_DIR.glob("*.png"), *OUTPUT_DIR.glob("*.mp4")]
+    files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
     out: list[HistoryItem] = []
     for f in files[:limit]:
+        if f.suffix == ".mp4":
+            out.append(_video_item(f))
+            continue
         info: dict[str, str] = {}
         try:
             with Image.open(f) as im:
@@ -36,3 +42,17 @@ def list_history(limit: int = 200) -> list[HistoryItem]:
             )
         )
     return out
+
+
+def _video_item(f) -> HistoryItem:
+    try:
+        meta = json.loads(f.with_suffix(".json").read_text())
+    except (OSError, ValueError):
+        meta = {}
+    return HistoryItem(
+        filename=f.name,
+        url=f"/outputs/{f.name}",
+        prompt=meta.get("prompt"),
+        kind="video",
+        created_at=f.stat().st_mtime,
+    )

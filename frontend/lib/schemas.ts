@@ -14,6 +14,7 @@ export const GenerateRequestSchema = z.object({
   seed_text: z.string().default(""),
   reference_image: z.string().nullable().default(null),
   strength: z.coerce.number().min(0.05).max(0.95).default(0.6),
+  motion: z.string().default(""),
 });
 
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
@@ -26,6 +27,7 @@ export interface Options {
   lighting: string[];
   styles: string[];
   people: string[];
+  motions: string[];
 }
 
 export interface Preset {
@@ -51,5 +53,32 @@ export interface HistoryItem {
   seed: number | null;
   model: string | null;
   reference_url: string | null;
+  kind: "image" | "video";
   created_at: number;
+}
+
+export interface VideoForm {
+  bag_type: string;
+  color: string;
+  location: string;
+  lighting: string;
+  style: string;
+  people: string;
+  motion: string;
+}
+
+export interface VideoQuota {
+  name: string;
+  used: number;
+  quota: number;
+  left: number;
+}
+
+export interface VideoJob {
+  job_id: string;
+  prompt: string;
+  status: "queued" | "running" | "done" | "failed";
+  url?: string;
+  filename?: string;
+  error?: string;
 }
